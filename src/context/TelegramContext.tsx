@@ -1,5 +1,5 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
-import { TelegramBot, TelegramChat, SendMessageResponse } from '../types/telegram';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import { TelegramBot, TelegramChat, SendMessageResponse, StoredToken } from '../types/telegram';
 
 interface TelegramContextType {
   token: string;
@@ -14,12 +14,18 @@ interface TelegramContextType {
   setError: (error: string | null) => void;
   selectedChatId: number | null;
   setSelectedChatId: (id: number | null) => void;
+  storedTokens: StoredToken[];
+  addStoredToken: (token: string, botInfo: TelegramBot) => void;
+  removeStoredToken: (token: string) => void;
+  selectStoredToken: (token: string) => void;
   verifyToken: (token: string) => Promise<boolean>;
   fetchChats: () => Promise<void>;
   sendTextMessage: (chatId: number, text: string) => Promise<SendMessageResponse | null>;
   sendImageMessage: (chatId: number, image: File, caption?: string) => Promise<SendMessageResponse | null>;
   clearData: () => void;
 }
+
+const STORAGE_KEY = 'telegram_tokens';
 
 const TelegramContext = createContext<TelegramContextType | undefined>(undefined);
 
@@ -30,6 +36,48 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
+  const [storedTokens, setStoredTokens] = useState<StoredToken[]>([]);
+
+  // Load stored tokens on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      setStoredTokens(JSON.parse(stored));
+    }
+  }, []);
+
+  const addStoredToken = (token: string, botInfo: TelegramBot) => {
+    const newToken: StoredToken = {
+      token,
+      botInfo,
+      addedAt: Date.now(),
+    };
+    
+    const updatedTokens = [...storedTokens, newToken];
+    setStoredTokens(updatedTokens);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedTokens));
+  };
+
+  const removeStoredToken = (tokenToRemove: string) => {
+    const updatedTokens = storedTokens.filter(t => t.token !== tokenToRemove);
+    setStoredTokens(updatedTokens);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedTokens));
+    
+    if (token === tokenToRemove) {
+      clearData();
+    }
+  };
+
+  const selectStoredToken = (selectedToken: string) => {
+    const found = storedTokens.find(t => t.token === selectedToken);
+    if (found) {
+      setToken(found.token);
+      setBotInfo(found.botInfo);
+      setSelectedChatId(null);
+      setChats([]);
+      fetchChats();
+    }
+  };
 
   const verifyToken = async (token: string): Promise<boolean> => {
     setLoading(true);
@@ -47,6 +95,7 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
       
       setBotInfo(data.result);
       setToken(token);
+      addStoredToken(token, data.result);
       setLoading(false);
       return true;
     } catch (error) {
@@ -192,6 +241,10 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
         setError,
         selectedChatId,
         setSelectedChatId,
+        storedTokens,
+        addStoredToken,
+        removeStoredToken,
+        selectStoredToken,
         verifyToken,
         fetchChats,
         sendTextMessage,

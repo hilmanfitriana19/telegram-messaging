@@ -58,3 +58,9 @@ export interface SendMessageResponse {
   };
   description?: string;
 }
+
+export interface StoredToken {
+  token: string;
+  botInfo: TelegramBot;
+  addedAt: number;
+}
