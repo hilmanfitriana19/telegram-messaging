@@ -20,8 +20,17 @@ interface TelegramContextType {
   selectStoredToken: (token: string) => void;
   verifyToken: (token: string) => Promise<boolean>;
   fetchChats: () => Promise<void>;
-  sendTextMessage: (chatId: number | string, text: string) => Promise<SendMessageResponse | null>;
-  sendImageMessage: (chatId: number | string, image: File, caption?: string) => Promise<SendMessageResponse | null>;
+  sendTextMessage: (
+    chatId: number | string,
+    text: string,
+    threadId?: number
+  ) => Promise<SendMessageResponse | null>;
+  sendImageMessage: (
+    chatId: number | string,
+    image: File,
+    caption?: string,
+    threadId?: number
+  ) => Promise<SendMessageResponse | null>;
   clearData: () => void;
 }
 
@@ -150,7 +159,11 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
-  const sendTextMessage = async (chatId: number | string, text: string): Promise<SendMessageResponse | null> => {
+  const sendTextMessage = async (
+    chatId: number | string,
+    text: string,
+    threadId?: number
+  ): Promise<SendMessageResponse | null> => {
     if (!token) {
       setError('No token provided');
       return null;
@@ -168,6 +181,7 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
         body: JSON.stringify({
           chat_id: chatId,
           text: text,
+          ...(threadId ? { message_thread_id: threadId } : {}),
         }),
       });
       
@@ -187,7 +201,12 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
-  const sendImageMessage = async (chatId: number | string, image: File, caption?: string): Promise<SendMessageResponse | null> => {
+  const sendImageMessage = async (
+    chatId: number | string,
+    image: File,
+    caption?: string,
+    threadId?: number
+  ): Promise<SendMessageResponse | null> => {
     if (!token) {
       setError('No token provided');
       return null;
@@ -200,9 +219,12 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
       const formData = new FormData();
       formData.append('chat_id', chatId.toString());
       formData.append('photo', image);
-      
+
       if (caption) {
         formData.append('caption', caption);
+      }
+      if (threadId) {
+        formData.append('message_thread_id', threadId.toString());
       }
       
       const response = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {

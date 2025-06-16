@@ -43,6 +43,8 @@ non‑critical bot accounts.
 
 You can send messages to any chat listed in the dashboard or manually specify a
 chat ID or channel username in the message form to send to groups or channels.
+An optional **Thread ID** field lets you post in specific forum topics within
+supergroups.
 
 ## License
 

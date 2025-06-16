@@ -37,6 +37,7 @@ export interface TelegramUpdate {
 export interface SendMessageParams {
   chat_id: number | string;
   text: string;
+  message_thread_id?: number;
   parse_mode?: 'HTML' | 'MarkdownV2' | 'Markdown';
 }
 
@@ -44,6 +45,7 @@ export interface SendPhotoParams {
   chat_id: number | string;
   photo: File;
   caption?: string;
+  message_thread_id?: number;
   parse_mode?: 'HTML' | 'MarkdownV2' | 'Markdown';
 }
 

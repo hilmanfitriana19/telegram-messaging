@@ -4,13 +4,22 @@ import { useTelegram } from '../context/TelegramContext';
 import { TelegramChat } from '../types/telegram';
 
 const MessageForm: React.FC = () => {
-  const { token, chats, sendTextMessage, sendImageMessage, loading, error, selectedChatId } = useTelegram();
+  const {
+    token,
+    chats,
+    sendTextMessage,
+    sendImageMessage,
+    loading,
+    error,
+    selectedChatId,
+  } = useTelegram();
   const [message, setMessage] = useState('');
   const [caption, setCaption] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [messageType, setMessageType] = useState<'text' | 'image'>('text');
   const [success, setSuccess] = useState<string | null>(null);
   const [manualChatId, setManualChatId] = useState('');
+  const [threadId, setThreadId] = useState('');
   
   if (!token) {
     return null;
@@ -21,14 +30,15 @@ const MessageForm: React.FC = () => {
     
     const targetId = manualChatId || selectedChatId;
     if (!targetId) return;
+    const thread = threadId ? Number(threadId) : undefined;
     
     try {
       let result;
       
       if (messageType === 'text') {
-        result = await sendTextMessage(targetId, message);
+        result = await sendTextMessage(targetId, message, thread);
       } else if (messageType === 'image' && image) {
-        result = await sendImageMessage(targetId, image, caption);
+        result = await sendImageMessage(targetId, image, caption, thread);
       }
       
       if (result && result.ok) {
@@ -37,6 +47,7 @@ const MessageForm: React.FC = () => {
         setCaption('');
         setImage(null);
         setManualChatId('');
+        setThreadId('');
         
         setTimeout(() => {
           setSuccess(null);
@@ -110,6 +121,21 @@ const MessageForm: React.FC = () => {
             onChange={(e) => setManualChatId(e.target.value)}
             className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             placeholder="@channel or -1001234567890"
+          />
+        </div>
+
+        {/* Thread ID */}
+        <div>
+          <label htmlFor="thread-id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Thread ID (optional)
+          </label>
+          <input
+            type="number"
+            id="thread-id"
+            value={threadId}
+            onChange={(e) => setThreadId(e.target.value)}
+            className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            placeholder="For forum topics"
           />
         </div>
 
