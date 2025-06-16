@@ -20,8 +20,8 @@ interface TelegramContextType {
   selectStoredToken: (token: string) => void;
   verifyToken: (token: string) => Promise<boolean>;
   fetchChats: () => Promise<void>;
-  sendTextMessage: (chatId: number, text: string) => Promise<SendMessageResponse | null>;
-  sendImageMessage: (chatId: number, image: File, caption?: string) => Promise<SendMessageResponse | null>;
+  sendTextMessage: (chatId: number | string, text: string) => Promise<SendMessageResponse | null>;
+  sendImageMessage: (chatId: number | string, image: File, caption?: string) => Promise<SendMessageResponse | null>;
   clearData: () => void;
 }
 
@@ -47,15 +47,23 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
   }, []);
 
   const addStoredToken = (token: string, botInfo: TelegramBot) => {
-    const newToken: StoredToken = {
-      token,
-      botInfo,
-      addedAt: Date.now(),
-    };
-    
-    const updatedTokens = [...storedTokens, newToken];
-    setStoredTokens(updatedTokens);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedTokens));
+    setStoredTokens((prev) => {
+      const existingIndex = prev.findIndex(t => t.token === token);
+      const newEntry: StoredToken = {
+        token,
+        botInfo,
+        addedAt: Date.now(),
+      };
+      let updated;
+      if (existingIndex !== -1) {
+        updated = [...prev];
+        updated[existingIndex] = newEntry;
+      } else {
+        updated = [...prev, newEntry];
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const removeStoredToken = (tokenToRemove: string) => {
@@ -142,7 +150,7 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
-  const sendTextMessage = async (chatId: number, text: string): Promise<SendMessageResponse | null> => {
+  const sendTextMessage = async (chatId: number | string, text: string): Promise<SendMessageResponse | null> => {
     if (!token) {
       setError('No token provided');
       return null;
@@ -179,7 +187,7 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
-  const sendImageMessage = async (chatId: number, image: File, caption?: string): Promise<SendMessageResponse | null> => {
+  const sendImageMessage = async (chatId: number | string, image: File, caption?: string): Promise<SendMessageResponse | null> => {
     if (!token) {
       setError('No token provided');
       return null;

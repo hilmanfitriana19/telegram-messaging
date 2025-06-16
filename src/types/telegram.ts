@@ -35,13 +35,13 @@ export interface TelegramUpdate {
 }
 
 export interface SendMessageParams {
-  chat_id: number;
+  chat_id: number | string;
   text: string;
   parse_mode?: 'HTML' | 'MarkdownV2' | 'Markdown';
 }
 
 export interface SendPhotoParams {
-  chat_id: number;
+  chat_id: number | string;
   photo: File;
   caption?: string;
   parse_mode?: 'HTML' | 'MarkdownV2' | 'Markdown';
