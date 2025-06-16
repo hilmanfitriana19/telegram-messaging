@@ -10,6 +10,7 @@ const MessageForm: React.FC = () => {
   const [image, setImage] = useState<File | null>(null);
   const [messageType, setMessageType] = useState<'text' | 'image'>('text');
   const [success, setSuccess] = useState<string | null>(null);
+  const [manualChatId, setManualChatId] = useState('');
   
   if (!token) {
     return null;
@@ -18,15 +19,16 @@ const MessageForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedChatId) return;
+    const targetId = manualChatId || selectedChatId;
+    if (!targetId) return;
     
     try {
       let result;
       
       if (messageType === 'text') {
-        result = await sendTextMessage(selectedChatId, message);
+        result = await sendTextMessage(targetId, message);
       } else if (messageType === 'image' && image) {
-        result = await sendImageMessage(selectedChatId, image, caption);
+        result = await sendImageMessage(targetId, image, caption);
       }
       
       if (result && result.ok) {
@@ -34,6 +36,7 @@ const MessageForm: React.FC = () => {
         setMessage('');
         setCaption('');
         setImage(null);
+        setManualChatId('');
         
         setTimeout(() => {
           setSuccess(null);
@@ -94,7 +97,22 @@ const MessageForm: React.FC = () => {
             </p>
           </div>
         )}
-        
+
+        {/* Manual Chat ID */}
+        <div>
+          <label htmlFor="manual-chat" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Chat ID or Username
+          </label>
+          <input
+            type="text"
+            id="manual-chat"
+            value={manualChatId}
+            onChange={(e) => setManualChatId(e.target.value)}
+            className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            placeholder="@channel or -1001234567890"
+          />
+        </div>
+
         {/* Message Type Selection */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -214,7 +232,7 @@ const MessageForm: React.FC = () => {
         <div>
           <button
             type="submit"
-            disabled={loading || !selectedChatId || (messageType === 'text' && !message) || (messageType === 'image' && !image)}
+            disabled={loading || !(manualChatId || selectedChatId) || (messageType === 'text' && !message) || (messageType === 'image' && !image)}
             className={`w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
               loading || !selectedChatId || (messageType === 'text' && !message) || (messageType === 'image' && !image)
                 ? 'bg-blue-400 cursor-not-allowed'
