@@ -13,8 +13,6 @@ permissions:
   id-token: write     # (only if you use OIDC in other steps)
 
 jobs:
-
-jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
