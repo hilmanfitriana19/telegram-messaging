@@ -35,15 +35,17 @@ export interface TelegramUpdate {
 }
 
 export interface SendMessageParams {
-  chat_id: number;
+  chat_id: number | string;
   text: string;
+  message_thread_id?: number;
   parse_mode?: 'HTML' | 'MarkdownV2' | 'Markdown';
 }
 
 export interface SendPhotoParams {
-  chat_id: number;
+  chat_id: number | string;
   photo: File;
   caption?: string;
+  message_thread_id?: number;
   parse_mode?: 'HTML' | 'MarkdownV2' | 'Markdown';
 }
 
@@ -63,4 +65,11 @@ export interface StoredToken {
   token: string;
   botInfo: TelegramBot;
   addedAt: number;
+}
+
+export interface ForumTopic {
+  message_thread_id: number;
+  name: string;
+  icon_color?: number;
+  icon_custom_emoji_id?: string;
 }
