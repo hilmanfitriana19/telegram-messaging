@@ -149,11 +149,12 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
           if (update.message.message_thread_id) {
             const threadId = update.message.message_thread_id as number;
             const name = update.message.forum_topic_created?.name as string | undefined;
+            const title = update.message.chat?.title;
             if (!topicsMap[chat.id]) {
               topicsMap[chat.id] = [];
             }
             if (!topicsMap[chat.id].some(t => t.message_thread_id === threadId)) {
-              topicsMap[chat.id].push({ message_thread_id: threadId, name });
+              topicsMap[chat.id].push({ message_thread_id: threadId, name, title });
             }
           }
         }

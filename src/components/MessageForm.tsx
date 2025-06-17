@@ -181,7 +181,7 @@ const MessageForm: React.FC = () => {
               {forumTopics[selectedChat.id] && forumTopics[selectedChat.id].length > 0 ? (
                 forumTopics[selectedChat.id].map((topic) => (
                   <option key={topic.message_thread_id} value={topic.message_thread_id}>
-                    {topic.name ? `${topic.name} (${topic.message_thread_id})` : `Thread ${topic.message_thread_id}`}
+                    {topic.name ? `${topic.name} (${topic.message_thread_id})` : `Thread ${topic.message_thread_id} - ${topic.title}`}
                   </option>
                 ))
               ) : (

@@ -70,4 +70,6 @@ export interface StoredToken {
 export interface ForumTopic {
   message_thread_id: number;
   name?: string;
+  title?: string;
+  
 }
