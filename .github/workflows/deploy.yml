@@ -6,6 +6,14 @@ on:
     branches:
       - main
 
+# Grant GITHUB_TOKEN the rights to push
+permissions:
+  contents: write     # allow pushing commits
+  pages: write        # allow updating GitHub Pages
+  id-token: write     # (only if you use OIDC in other steps)
+
+jobs:
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
