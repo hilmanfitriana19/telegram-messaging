@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Send, Image, Trash, Check, AlertCircle } from 'lucide-react';
 import { useTelegram } from '../context/TelegramContext';
-import { TelegramChat } from '../types/telegram';
 
 const MessageForm: React.FC = () => {
   const {
@@ -172,24 +171,23 @@ const MessageForm: React.FC = () => {
             <label htmlFor="thread-id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Thread ID (optional)
             </label>
-            <input
-              type="number"
+            <select
               id="thread-id"
-              list="thread-options"
               value={threadId}
               onChange={(e) => setThreadId(e.target.value)}
               className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Select or enter a thread ID"
-            />
-            {forumTopics[selectedChat.id] && forumTopics[selectedChat.id].length > 0 && (
-              <datalist id="thread-options">
-                {forumTopics[selectedChat.id].map((topic) => (
+            >
+              <option value="">No thread</option>
+              {forumTopics[selectedChat.id] && forumTopics[selectedChat.id].length > 0 ? (
+                forumTopics[selectedChat.id].map((topic) => (
                   <option key={topic.message_thread_id} value={topic.message_thread_id}>
-                    {topic.name ? topic.name : `Thread ${topic.message_thread_id}`}
+                    {topic.name ? `${topic.name} (${topic.message_thread_id})` : `Thread ${topic.message_thread_id}`}
                   </option>
-                ))}
-              </datalist>
-            )}
+                ))
+              ) : (
+                <option disabled>No threads found</option>
+              )}
+            </select>
           </div>
         )}
 

@@ -11,7 +11,7 @@ const ChatList: React.FC = () => {
     if (token) {
       fetchChats();
     }
-  }, [token]);
+  }, [token, fetchChats]);
 
   const getChatTypeIcon = (type: string) => {
     switch (type) {

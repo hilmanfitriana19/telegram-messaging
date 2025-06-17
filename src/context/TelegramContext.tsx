@@ -108,7 +108,8 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
       addStoredToken(token, data.result);
       setLoading(false);
       return true;
-    } catch (error) {
+    } catch (err) {
+      console.error(err);
       setError('Failed to verify token');
       setBotInfo(null);
       setLoading(false);
@@ -139,6 +140,7 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
       const uniqueChats = new Map<number, TelegramChat>();
       const topicsMap: Record<number, ForumTopic[]> = { ...forumTopics };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data.result.forEach((update: any) => {
         if (update.message && update.message.chat) {
           const chat = update.message.chat;
@@ -160,7 +162,8 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
       setChats(Array.from(uniqueChats.values()));
       setForumTopics(topicsMap);
       setLoading(false);
-    } catch (error) {
+    } catch (err) {
+      console.error(err);
       setError('Failed to fetch chats');
       setLoading(false);
     }
@@ -201,7 +204,8 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
       }
       
       return data;
-    } catch (error) {
+    } catch (err) {
+      console.error(err);
       setError('Failed to send message');
       setLoading(false);
       return null;
@@ -248,7 +252,8 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
       }
       
       return data;
-    } catch (error) {
+    } catch (err) {
+      console.error(err);
       setError('Failed to send image');
       setLoading(false);
       return null;
