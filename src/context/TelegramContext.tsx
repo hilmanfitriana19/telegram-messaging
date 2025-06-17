@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
 import { TelegramBot, TelegramChat, SendMessageResponse, StoredToken, ForumTopic } from '../types/telegram';
 
 interface TelegramContextType {
@@ -117,7 +117,7 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
-  const fetchChats = async (): Promise<void> => {
+  const fetchChats = useCallback(async (): Promise<void> => {
     if (!token) {
       setError('No token provided');
       return;
@@ -125,20 +125,20 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await fetch(`https://api.telegram.org/bot${token}/getUpdates`);
       const data = await response.json();
-      
+
       if (!data.ok) {
         setError(data.description || 'Failed to fetch chats');
         setLoading(false);
         return;
       }
-      
+
       // Extract unique chats from updates and collect forum topics
       const uniqueChats = new Map<number, TelegramChat>();
-      const topicsMap: Record<number, ForumTopic[]> = { ...forumTopics };
+      const topicsMap: Record<number, ForumTopic[]> = {};
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data.result.forEach((update: any) => {
@@ -160,24 +160,25 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
       });
 
       setChats(Array.from(uniqueChats.values()));
-      setForumTopics(topicsMap);
+      setForumTopics(prev => ({ ...prev, ...topicsMap }));
       setLoading(false);
     } catch (err) {
       console.error(err);
       setError('Failed to fetch chats');
       setLoading(false);
     }
-  };
+  }, [token]);
 
-  const sendTextMessage = async (
-    chatId: number | string,
-    text: string,
-    threadId?: number,
-  ): Promise<SendMessageResponse | null> => {
-    if (!token) {
-      setError('No token provided');
-      return null;
-    }
+  const sendTextMessage = useCallback(
+    async (
+      chatId: number | string,
+      text: string,
+      threadId?: number,
+    ): Promise<SendMessageResponse | null> => {
+      if (!token) {
+        setError('No token provided');
+        return null;
+      }
 
     setLoading(true);
     setError(null);
@@ -210,18 +211,21 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
       setLoading(false);
       return null;
     }
-  };
+    },
+    [token],
+  );
 
-  const sendImageMessage = async (
-    chatId: number | string,
-    image: File,
-    caption?: string,
-    threadId?: number,
-  ): Promise<SendMessageResponse | null> => {
-    if (!token) {
-      setError('No token provided');
-      return null;
-    }
+  const sendImageMessage = useCallback(
+    async (
+      chatId: number | string,
+      image: File,
+      caption?: string,
+      threadId?: number,
+    ): Promise<SendMessageResponse | null> => {
+      if (!token) {
+        setError('No token provided');
+        return null;
+      }
 
     setLoading(true);
     setError(null);
@@ -258,7 +262,9 @@ export const TelegramProvider: React.FC<{ children: ReactNode }> = ({ children }
       setLoading(false);
       return null;
     }
-  };
+    },
+    [token],
+  );
 
   const clearData = () => {
     setToken('');
