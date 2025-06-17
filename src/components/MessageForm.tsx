@@ -1,16 +1,27 @@
 import React, { useState } from 'react';
 import { Send, Image, Trash, Check, AlertCircle } from 'lucide-react';
 import { useTelegram } from '../context/TelegramContext';
-import { TelegramChat } from '../types/telegram';
 
 const MessageForm: React.FC = () => {
-  const { token, chats, sendTextMessage, sendImageMessage, loading, error, selectedChatId } = useTelegram();
+  const {
+    token,
+    chats,
+    sendTextMessage,
+    sendImageMessage,
+    loading,
+    error,
+    selectedChatId,
+    setSelectedChatId,
+    forumTopics,
+  } = useTelegram();
   const [message, setMessage] = useState('');
   const [caption, setCaption] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [messageType, setMessageType] = useState<'text' | 'image'>('text');
   const [success, setSuccess] = useState<string | null>(null);
   const [manualChatId, setManualChatId] = useState('');
+  const [threadId, setThreadId] = useState('');
+  const [sendMethod, setSendMethod] = useState<'list' | 'custom'>('list');
   
   if (!token) {
     return null;
@@ -19,16 +30,18 @@ const MessageForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const targetId = manualChatId || selectedChatId;
+    const targetId = sendMethod === 'custom' ? manualChatId : selectedChatId;
     if (!targetId) return;
     
     try {
       let result;
       
+      const thread = threadId ? parseInt(threadId, 10) : undefined;
+
       if (messageType === 'text') {
-        result = await sendTextMessage(targetId, message);
+        result = await sendTextMessage(targetId, message, thread);
       } else if (messageType === 'image' && image) {
-        result = await sendImageMessage(targetId, image, caption);
+        result = await sendImageMessage(targetId, image, caption, thread);
       }
       
       if (result && result.ok) {
@@ -37,6 +50,7 @@ const MessageForm: React.FC = () => {
         setCaption('');
         setImage(null);
         setManualChatId('');
+        setThreadId('');
         
         setTimeout(() => {
           setSuccess(null);
@@ -83,35 +97,99 @@ const MessageForm: React.FC = () => {
       )}
       
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Send Method */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Send Method</label>
+          <div className="flex space-x-2">
+            <button
+              type="button"
+              onClick={() => {
+                setSendMethod('list');
+                setManualChatId('');
+              }}
+              className={`flex-1 py-2 px-4 rounded-md transition-colors duration-200 ${
+                sendMethod === 'list'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200'
+              }`}
+            >
+              From Chat List
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSendMethod('custom');
+                setSelectedChatId(null);
+              }}
+              className={`flex-1 py-2 px-4 rounded-md transition-colors duration-200 ${
+                sendMethod === 'custom'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200'
+              }`}
+            >
+              Custom User
+            </button>
+          </div>
+        </div>
         {/* Selected Chat Info */}
-        {selectedChat ? (
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md">
-            <p className="text-sm text-blue-700 dark:text-blue-300">
-              Sending to: <span className="font-medium">{selectedChat.title || selectedChat.username || `${selectedChat.first_name || ''} ${selectedChat.last_name || ''}`.trim() || `Chat ${selectedChat.id}`}</span>
-            </p>
-          </div>
-        ) : (
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-md">
-            <p className="text-sm text-yellow-700 dark:text-yellow-300">
-              Please select a chat from the list above to send a message
-            </p>
-          </div>
+        {sendMethod === 'list' && (
+          selectedChat ? (
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                Sending to: <span className="font-medium">{selectedChat.title || selectedChat.username || `${selectedChat.first_name || ''} ${selectedChat.last_name || ''}`.trim() || `Chat ${selectedChat.id}`}</span>
+              </p>
+            </div>
+          ) : (
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-md">
+              <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                Please select a chat from the list above to send a message
+              </p>
+            </div>
+          )
         )}
 
         {/* Manual Chat ID */}
-        <div>
-          <label htmlFor="manual-chat" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Chat ID or Username
-          </label>
-          <input
-            type="text"
-            id="manual-chat"
-            value={manualChatId}
-            onChange={(e) => setManualChatId(e.target.value)}
-            className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-            placeholder="@channel or -1001234567890"
-          />
-        </div>
+        {sendMethod === 'custom' && (
+          <div>
+            <label htmlFor="manual-chat" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Chat ID or Username
+            </label>
+            <input
+              type="text"
+              id="manual-chat"
+              value={manualChatId}
+              onChange={(e) => setManualChatId(e.target.value)}
+              className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+              placeholder="@channel or -1001234567890"
+            />
+          </div>
+        )}
+
+        {/* Thread Selection for Supergroups */}
+        {sendMethod === 'list' && selectedChat && selectedChat.type === 'supergroup' && (
+          <div>
+            <label htmlFor="thread-id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Thread ID (optional)
+            </label>
+            <select
+              id="thread-id"
+              value={threadId}
+              onChange={(e) => setThreadId(e.target.value)}
+              className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            >
+              <option value="">No thread</option>
+              {forumTopics[selectedChat.id] && forumTopics[selectedChat.id].length > 0 ? (
+                forumTopics[selectedChat.id].map((topic) => (
+                  <option key={topic.message_thread_id} value={topic.message_thread_id}>
+                    {topic.name ? `${topic.name} (${topic.message_thread_id})` : `Thread ${topic.message_thread_id} - ${topic.title}`}
+                  </option>
+                ))
+              ) : (
+                <option disabled>No threads found</option>
+              )}
+            </select>
+          </div>
+        )}
 
         {/* Message Type Selection */}
         <div>
@@ -232,9 +310,14 @@ const MessageForm: React.FC = () => {
         <div>
           <button
             type="submit"
-            disabled={loading || !(manualChatId || selectedChatId) || (messageType === 'text' && !message) || (messageType === 'image' && !image)}
+            disabled={
+              loading ||
+              (sendMethod === 'custom' ? !manualChatId : !selectedChatId) ||
+              (messageType === 'text' && !message) ||
+              (messageType === 'image' && !image)
+            }
             className={`w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-              loading || !selectedChatId || (messageType === 'text' && !message) || (messageType === 'image' && !image)
+              loading || (sendMethod === 'custom' ? !manualChatId : !selectedChatId) || (messageType === 'text' && !message) || (messageType === 'image' && !image)
                 ? 'bg-blue-400 cursor-not-allowed'
                 : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
             } transition-colors duration-200`}

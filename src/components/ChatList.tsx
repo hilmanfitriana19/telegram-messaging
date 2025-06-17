@@ -11,7 +11,7 @@ const ChatList: React.FC = () => {
     if (token) {
       fetchChats();
     }
-  }, [token]);
+  }, [token, fetchChats]);
 
   const getChatTypeIcon = (type: string) => {
     switch (type) {
@@ -99,6 +99,16 @@ const ChatList: React.FC = () => {
           }`}
         >
           Groups
+        </button>
+        <button
+          onClick={() => setFilter('supergroup')}
+          className={`py-2 px-3 text-sm font-medium transition-colors duration-200 border-b-2 -mb-px ${
+            filter === 'supergroup'
+              ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400'
+              : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300'
+          }`}
+        >
+          Supergroups
         </button>
         <button
           onClick={() => setFilter('channel')}

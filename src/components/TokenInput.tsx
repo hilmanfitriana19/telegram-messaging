@@ -1,26 +1,23 @@
 import React, { useState } from 'react';
-import { Bot, Key, Check, AlertCircle, Trash2, RefreshCw } from 'lucide-react';
+import { Bot, Key, AlertCircle, Trash2, RefreshCw } from 'lucide-react';
 import { useTelegram } from '../context/TelegramContext';
 import { StoredToken } from '../types/telegram';
 
 const TokenInput: React.FC = () => {
-  const { 
-    verifyToken, 
-    loading, 
-    error, 
-    botInfo, 
-    storedTokens, 
-    removeStoredToken, 
+  const {
+    verifyToken,
+    loading,
+    error,
+    storedTokens,
+    removeStoredToken,
     selectStoredToken,
-    token: currentToken 
+    token: currentToken
   } = useTelegram();
   const [token, setToken] = useState('');
-  const [isVerified, setIsVerified] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const success = await verifyToken(token);
-    setIsVerified(success);
     if (success) {
       setToken('');
     }

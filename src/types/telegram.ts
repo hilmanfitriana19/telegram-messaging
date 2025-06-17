@@ -38,6 +38,7 @@ export interface SendMessageParams {
   chat_id: number | string;
   text: string;
   parse_mode?: 'HTML' | 'MarkdownV2' | 'Markdown';
+  message_thread_id?: number;
 }
 
 export interface SendPhotoParams {
@@ -45,6 +46,7 @@ export interface SendPhotoParams {
   photo: File;
   caption?: string;
   parse_mode?: 'HTML' | 'MarkdownV2' | 'Markdown';
+  message_thread_id?: number;
 }
 
 export interface SendMessageResponse {
@@ -63,4 +65,11 @@ export interface StoredToken {
   token: string;
   botInfo: TelegramBot;
   addedAt: number;
+}
+
+export interface ForumTopic {
+  message_thread_id: number;
+  name?: string;
+  title?: string;
+  
 }
