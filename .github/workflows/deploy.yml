@@ -41,6 +41,6 @@ jobs:
           # Built-in token has permission to push to gh-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Directory to publish (e.g. 'build' for Create React App)
-          publish_dir: ./build
+          publish_dir: ./dist
           # If your pages live at root (not in /docs), add:
           # publish_branch: gh-pages
